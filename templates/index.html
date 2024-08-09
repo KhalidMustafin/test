@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Найди Хомяка</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="menu">
+        <button onclick="location.href='/game/' + Math.random().toString(36).substr(2, 9)">Играть</button>
+        <button onclick="showStatistics()">Статистика</button>
+        <button onclick="showAchievements()">Ачивки</button>
+        <button onclick="showRankings()">Рейтинг</button>
+    </div>
+    <div id="statistics" class="hidden">
+        <h2>Статистика</h2>
+        <div id="stats"></div>
+        <button onclick="goToMenu()">Выйти в главное меню</button>
+    </div>
+    <script>
+        function showStatistics() {
+            document.querySelector('.menu').classList.add('hidden');
+            document.querySelector('#statistics').classList.remove('hidden');
+            fetchStats();
+        }
+        
+        function showAchievements() {
+            // Logic to show achievements
+        }
+        
+        function showRankings() {
+            // Logic to show rankings
+        }
+
+        function goToMenu() {
+
+
+document.querySelector('.menu').classList.remove('hidden');
+            document.querySelector('#statistics').classList.add('hidden');
+        }
+
+        function fetchStats() {
+            // Fetch and display stats
+        }
+    </script>
+</body>
+</html>
