@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Играй в Найди Хомяка</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game" id="gameBoard"></div>
+        <div class="timer" id="timer">20</div>
+        <button id="inviteButton" onclick="invite()">Пригласить игрока</button>
+        <div id="link"></div>
+        <div id="messages"></div>
+        <button class="hidden" id="backToMenu" onclick="location.href='/'">Выйти в меню</button>
+    </div>
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+        const gameId = "{{ game_id }}";
+        let hasClicked = false;
+        let gameActive = true;
+
+        // Отправка запроса на подключение к игре
+        socket.emit('join_game', { game_id: gameId });
+
+        // Функция для генерации приглашения
+        function invite() {
+            fetch('/invite/' + gameId)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('link').innerHTML = `<a href="${data.url}" target="_blank">Пригласите друга</a>`;
+                }).catch(error => {
+                    console.error("Ошибка при генерации приглашения: ", error);
+                });
+        }
+
+        // Обновление игрового поля при получении соответствующего события
+        socket.on('update_board', (board) => {
+            console.log("Обновление игрового поля:", board);
+            const gameBoard = document.getElementById('gameBoard');
+            gameBoard.innerHTML = "";
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.dataset.cellIndex = i;
+
+                cell.addEventListener('click', () => {
+                    if (!hasClicked) {
+                        socket.emit('cell_click', { game_id: gameId, cell: i });
+                        hasClicked = true;
+                    }
+                });
+
+                gameBoard.appendChild(cell);
+            }
+        });
+
+        // Обработка клика по ячейке
+        socket.on('cell_result', (data) => {
+            console.log("Результат клика по ячейке:", data);
+            const message = `${data.player_name} нашел ${data.result}`;
+            const messagesContainer = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            messageElement.innerText = message;
+            messagesContainer.appendChild(messageElement);
+        });
+
+        // Старт таймера и инициализация его отображения
+        socket.on('timer_start', (timer) => {
+            console.log("Таймер запущен:", timer);
+            document.getElementById('timer').innerText = timer;
+        });
+
+        // Обновление таймера
+        socket.on('timer_update', (timer) => {
+            console.log("Обновление таймера:", timer);
+            document.getElementById('timer').innerText = timer;
+        });
+
+        // Игра завершена, вывод результатов
+        socket.on('game_over', (board) => {
+            console.log("Игра завершена. Итоговое поле:", board);
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                cell.innerText = board[index];
+                cell.classList.remove('hidden');
+            });
+            document.getElementById('timer').classList.add('hidden');
+            document.getElementById('inviteButton').classList.add('hidden');
+            document.getElementById('backToMenu').classList.remove('hidden');
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Ошибка подключения:', error);
+        });
+    </script>
+</body>
+</html>
