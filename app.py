@@ -85,4 +85,4 @@ def generate_board():
     return board
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    socketio.run(app)
